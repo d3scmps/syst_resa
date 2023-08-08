@@ -1,0 +1,129 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Système de management des réservations - AccroVerdon</title>
+    <style>
+        .column {
+            float: left;
+            width: 50%;
+            padding: 10px;
+        }
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Système de management des réservations - AccroVerdon</h1>
+    <div class="row">
+        <div class="column">
+            <form id="myForm" method="POST" action="/" method="post">
+                <label for="date">Date (format: DD-MM-YYYY HH:MM):</label><br>
+                <input type="text" id="date" name="date"><br>
+                <label for="nombre d'adultes">Adultes</label><br>
+                <input type="number" id="resources" name="resources"><br>
+                <label for="nombre d'enfants">Enfants</label><br>
+                <input type="number" id="enfants" name="enfants"><br>
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email"><br>
+                <label for="telephone">Tel:</label><br>
+                <input type="text" id="phone" name="phone"><br>
+                <label for="nom">Nom:</label><br>
+                <input type="text" id="name" name="name"><br>
+                <input type="hidden" name="force" value="false">
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+        <div class="row" style="text-align: right; padding-right: 20px;">
+            <button onclick="window.location.href='/add_all_data'">Exporter la journée</button>
+            <button onclick="window.location.href='/view_histogram'">Voir réservations jour</button>
+            <button onclick="window.location.href='/view_calendar'">Voir calendrier</button>
+        </div>
+       
+        <div class="column">
+            <h2>Réservations de la journée</h2>
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Nb Adultes</th>
+                    <th>Nb Enfants</th>
+                    <th>Email</th>
+                    <th>Telephone</th>
+                    <th>Nom</th>
+                </tr>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.resources }}</td>
+                    <td>{{ row.enfants }}</td>
+                    <td>{{ row.email }}</td>
+                    <td>{{ row.phone }}</td>
+                    <td>{{ row.name }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        
+        </div>
+    </div>
+
+    <script>
+        const now = new Date();
+        const formattedDate =  `${new Date().getDate().toString().padStart(2, '0')}-${(new Date().getMonth()+1).toString().padStart(2, '0')}-${new Date().getFullYear()} ${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`;
+        console.log(formattedDate)
+        document.getElementById('date').value =  `${new Date().getDate().toString().padStart(2, '0')}-${(new Date().getMonth()+1).toString().padStart(2, '0')}-${new Date().getFullYear()} ${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`;
+
+console.log(currentDate);
+
+        var form = document.getElementById('myForm');
+        form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var data = new FormData(form);
+        var force = data.get('force') === 'true';
+
+        fetch('/', {
+            method: 'POST',
+            body: data,
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.warnings && !force) {
+                var proceed = confirm(result.warnings.join('\n'));
+                if (proceed) {
+                    data.set('force', 'true');
+                    fetch('/', {
+                        method: 'POST',
+                        body: data,
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.reload();
+                        }
+                    });
+                }
+            } else {
+                window.location.reload();
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>
+
+
